@@ -1,42 +1,103 @@
-name: StarterPlayerScripts
-type: class
-category: Scripting
-memory_category: Instances
-summary: |
-  A container for objects to be copied to a Player's PlayerScripts when they
-  join a game.
-description: |
-  `Class.StarterPlayerScripts` is a container object located within the
-  `Class.StarterPlayer` service. It can contain `Class.LocalScript|LocalScripts`
-  and other objects to be copied to the `Class.PlayerScripts` container once
-  when a `Class.Player` joins the game. For example, if you want to create
-  special effects on the client when certain conditions are met, you can place a
-  `Class.LocalScript` within this container to do that.
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
 
-  This object is also a good place for `Class.LocalScript|LocalScripts` that
-  define additional inputs with `Class.ContextActionService`. For inputs that
-  are only relevant when a player has spawned in, you can use
-  `Class.ContextActionService:BindAction()` when the `Class.Players.LocalPlayer`
-  character spawns, then use `Class.ContextActionService:UnbindAction()` when
-  they die or despawn.
+-- Tạo cửa sổ chính của GUI
+local Window = OrionLib:MakeWindow({
+    Name = "MeoMeo Hub | Blox Fruits",
+    HidePremium = false,
+    IntroText = "MeoMeo Hub",
+    SaveConfig = true,
+    ConfigFolder = "MeoMeoHub",
+    Keybind = Enum.KeyCode.F4
+})
 
-  #### Modifying control scripts
+-- Tạo Tab "Cày LV"
+local CayLVTab = Window:MakeTab({
+    Name = "Cày LV",
+    Icon = "rbxassetid://82892113915663",
+    PremiumOnly = false
+})
 
-  When an experience is run, this object will also house the default
-  multi-platform Roblox control scripts for the camera and character. If
-  `Class.LocalScript|LocalScripts` named `CameraScript` or `ControlScript` are
-  placed within this container, they will **replace** the Roblox defaults for
-  those scripts respectively. If desired, you can add empty
-  `Class.LocalScript|LocalScripts` for each of these to disable them altogether;
-  this is useful for experiences that do not follow the typical control
-  paradigms of a Roblox experience.
-code_samples:
-inherits:
-  - Instance
-tags:
-  - NotCreatable
-deprecation_message: ''
-properties: []
-methods: []
-events: []
-callbacks: []
+-- Biến lưu trữ vũ khí được chọn
+local SelectedWeapon = "None"
+
+-- Biến kiểm soát Auto Cày
+local AutoCayEnabled = false
+
+-- Dropdown chọn vũ khí
+CayLVTab:AddDropdown({
+    Name = "Chọn Vũ Khí",
+    Default = "None",
+    Options = {"Võ", "Kiếm", "Súng", "Trái Ác Quỷ"},
+    Callback = function(Value)
+        SelectedWeapon = Value
+        print("Đã chọn vũ khí: " .. SelectedWeapon)
+    end
+})
+
+-- Nút sử dụng vũ khí đã chọn
+CayLVTab:AddButton({
+    Name = "Sử Dụng Vũ Khí",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        local backpack = player.Backpack
+        
+        -- Kiểm tra vũ khí đã chọn và trang bị nó nếu có
+        local weapon = backpack:FindFirstChild(SelectedWeapon)
+        if weapon then
+            weapon.Parent = player.Character
+            print("Đã trang bị vũ khí: " .. SelectedWeapon)
+        else
+            print("Không tìm thấy vũ khí: " .. SelectedWeapon)
+        end
+    end
+})
+
+-- Toggle Auto Cày
+CayLVTab:AddToggle({
+    Name = "Auto Cày",
+    Default = false,
+    Callback = function(Value)
+        AutoCayEnabled = Value
+        while AutoCayEnabled do
+            task.wait(1)
+            
+            -- Tự động nhận nhiệm vụ (ví dụ giả lập)
+            print("Đang nhận nhiệm vụ...")
+
+            -- Bay lên khoảng 4m
+            local player = game.Players.LocalPlayer
+            local humanoidRootPart = player.Character:WaitForChild("HumanoidRootPart")
+            humanoidRootPart.CFrame = humanoidRootPart.CFrame + Vector3.new(0, 4, 0)
+            
+            -- Thêm code cày level tại đây (farm hoặc chiến đấu)
+            print("Đang cày level...")
+        end
+    end
+})
+
+-- Khởi động GUI
+OrionLib:Init()
+
+-- Biến kiểm soát trạng thái cửa sổ
+local windowOpen = true
+
+-- Hàm đóng/mở cửa sổ
+local function toggleWindow()
+    if windowOpen then
+        Window:Hide()
+    else
+        Window:Show()
+    end
+    windowOpen = not windowOpen
+end
+
+-- Tạo nút đóng/mở cửa sổ
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+local button = Instance.new("TextButton")
+button.Parent = screenGui
+button.Text = "Toggle Window"
+button.Position = UDim2.new(0.5, -50, 0.5, -25)  -- Vị trí nút trên màn hình
+button.Size = UDim2.new(0, 100, 0, 50)  -- Kích thước nút
+button.MouseButton1Click:Connect(toggleWindow)
